@@ -1,31 +1,60 @@
 'use client';
-import React, { useState } from 'react';
+
+import React from 'react';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { TextField, Button, Box } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useProjectContext } from '../../../context/ProjectContext';
+import * as yup from 'yup';
+
+interface ProjectFormData {
+  projectId: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  pm: string;
+}
+
+const schema = yup.object().shape({
+  projectId: yup.string().required('Project ID is required'),
+  name: yup.string().required('Project Name is required'),
+  description: yup.string().required('Description is required'),
+  startDate: yup.string().required('Start Date is required'),
+  endDate: yup.string().required('End Date is required'),
+  pm: yup.string().required('Project Manager is required'),
+});
 
 export default function CreateProjectPage() {
   const { createProject } = useProjectContext();
   const router = useRouter();
 
-  // Basic form fields
-  const [projectId, setProjectId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [pm, setPm] = useState('');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ProjectFormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      projectId: '',
+      name: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      pm: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit: SubmitHandler<ProjectFormData> = data => {
     const newProject = {
-      id: parseInt(projectId, 10),
-      name,
-      description,
-      startDate,
-      endDate,
-      pm,
+      id: parseInt(data.projectId, 10),
+      name: data.name,
+      description: data.description,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      pm: data.pm,
       isFavorite: false,
     };
     createProject(newProject);
@@ -34,7 +63,7 @@ export default function CreateProjectPage() {
 
   return (
     <div className="px-8 pt-12 lg:w-2/3">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={2} className="w-full">
             {/* Project ID Field */}
@@ -44,12 +73,20 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="project-id"
-                placeholder="Enter Project ID"
-                value={projectId}
-                onChange={e => setProjectId(e.target.value)}
-                fullWidth
+              <Controller
+                name="projectId"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="project-id"
+                    placeholder="Enter Project ID"
+                    fullWidth
+                    error={!!errors.projectId}
+                    helperText={errors.projectId?.message}
+                    type="number"
+                  />
+                )}
               />
             </Grid>
 
@@ -63,12 +100,19 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="project-name"
-                placeholder="Enter Project Name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                fullWidth
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="project-name"
+                    placeholder="Enter Project Name"
+                    fullWidth
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                  />
+                )}
               />
             </Grid>
 
@@ -79,14 +123,21 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="description"
-                placeholder="Describe the project"
-                multiline
-                rows={4}
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                fullWidth
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="description"
+                    placeholder="Describe the project"
+                    multiline
+                    rows={4}
+                    fullWidth
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
+                  />
+                )}
               />
             </Grid>
 
@@ -97,12 +148,19 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                fullWidth
+              <Controller
+                name="startDate"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="start-date"
+                    type="date"
+                    fullWidth
+                    error={!!errors.startDate}
+                    helperText={errors.startDate?.message}
+                  />
+                )}
               />
             </Grid>
 
@@ -113,12 +171,19 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="end-date"
-                type="date"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-                fullWidth
+              <Controller
+                name="endDate"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="end-date"
+                    type="date"
+                    fullWidth
+                    error={!!errors.endDate}
+                    helperText={errors.endDate?.message}
+                  />
+                )}
               />
             </Grid>
 
@@ -132,12 +197,19 @@ export default function CreateProjectPage() {
               </label>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                id="project-manager"
-                placeholder="Enter Project Manager Name"
-                value={pm}
-                onChange={e => setPm(e.target.value)}
-                fullWidth
+              <Controller
+                name="pm"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    id="project-manager"
+                    placeholder="Enter Project Manager Name"
+                    fullWidth
+                    error={!!errors.pm}
+                    helperText={errors.pm?.message}
+                  />
+                )}
               />
             </Grid>
 
