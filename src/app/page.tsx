@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { Container, Typography, Button } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -10,18 +11,17 @@ export default function HomePage() {
         Welcome to the Project Management App
       </Typography>
       <Typography variant="h6" className="mb-6">
-        Click below to view your projects or create a new one.
+        Click below to open the app
       </Typography>
-      <div className="mt-4 space-x-4">
-        <Link href="/projects">
-          <Button variant="contained" color="primary">
-            View Projects
-          </Button>
-        </Link>
-        <Link href="/projects/create">
-          <Button variant="outlined">Create Project</Button>
-        </Link>
-      </div>
+      <Grid container spacing={2} justifyContent="center" className="mt-4">
+        <Grid size={12}>
+          <Link href="/projects" passHref>
+            <Button variant="contained" color="primary" fullWidth>
+              Enter
+            </Button>
+          </Link>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

@@ -33,7 +33,7 @@ export default function ProjectDetailPage() {
   };
 
   return (
-    <div className="relative px-8 pt-12 lg:w-2/3">
+    <div className="relative pl-8 pr-4 pt-12 lg:w-2/3">
       <div className="absolute right-4 top-4">
         <IconButton onClick={handleToggleFavorite} aria-label="toggle favorite">
           {project.isFavorite ? (
@@ -45,7 +45,7 @@ export default function ProjectDetailPage() {
       </div>
 
       <Box sx={{ flexGrow: 1 }}>
-        <Grid container spacing={2} className="w-full">
+        <Grid container spacing={{ md: 2, xs: 1 }} className="w-full">
           {/* Project ID Field */}
           <Grid size={{ xs: 12, md: 4 }}>
             <label htmlFor="project-id" className="mb-1 block">

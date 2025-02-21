@@ -69,7 +69,7 @@ export default function EditProjectPage() {
     <div className="px-8 pt-12 lg:w-2/3">
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ flexGrow: 1 }}>
-          <Grid container spacing={2} className="w-full">
+          <Grid container spacing={{ md: 2, xs: 1 }} className="w-full">
             {/* Project ID Field */}
             <Grid size={{ xs: 12, md: 4 }}>
               <label htmlFor="project-id" className="mb-1 block font-semibold">
