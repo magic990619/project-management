@@ -3,6 +3,7 @@ import { projects, simulateNetworkConditions } from '../data';
 
 // GET /api/projects/:id -> Get project by ID
 // PUT /api/projects/:id -> Update project
+// PATCH /api/projects/:id -> Toggle Favorite project
 // DELETE /api/projects/:id -> Delete project
 
 // Helper: find project by ID
@@ -29,7 +30,6 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await simulateNetworkConditions();
   const id = parseInt((await params).id, 10);
   const index = findProjectIndex(id);
 
@@ -55,7 +55,6 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await simulateNetworkConditions();
   const id = parseInt((await params).id, 10);
   const index = findProjectIndex(id);
 
@@ -80,7 +79,6 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await simulateNetworkConditions();
   const id = parseInt((await params).id, 10);
   const index = findProjectIndex(id);
 

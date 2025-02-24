@@ -29,11 +29,10 @@ export const projects: Project[] = [
   },
 ];
 
-// Random delay and error injection
+// Delay and error injection
 function randomDelay() {
-  // Delay between 0 and 2 seconds
-  const delay = Math.floor(Math.random() * 2000);
-  return new Promise(resolve => setTimeout(resolve, delay));
+  // Delay 2 seconds
+  return new Promise(resolve => setTimeout(resolve, 2000));
 }
 
 function maybeThrowRandomError() {

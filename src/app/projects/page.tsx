@@ -21,9 +21,25 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 export default function ProjectListPage() {
-  const { projects, toggleFavorite } = useProjectContext();
+  const { projects, toggleFavorite, loading, error } = useProjectContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  if (loading) {
+    return (
+      <Typography variant="h6" align="center" className="mt-8">
+        Loading projects...
+      </Typography>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography variant="h6" color="error" align="center" className="mt-8">
+        {error}
+      </Typography>
+    );
+  }
 
   return (
     <div className="pl-8 pr-4">

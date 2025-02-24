@@ -4,7 +4,13 @@ import React from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { TextField, Button, Box } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  CircularProgress,
+} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useProjectContext } from '../../../context/ProjectContext';
 import * as yup from 'yup';
@@ -28,7 +34,7 @@ const schema = yup.object().shape({
 });
 
 export default function CreateProjectPage() {
-  const { createProject } = useProjectContext();
+  const { createProject, loading, error } = useProjectContext();
   const router = useRouter();
 
   const {
@@ -47,7 +53,7 @@ export default function CreateProjectPage() {
     },
   });
 
-  const onSubmit: SubmitHandler<ProjectFormData> = data => {
+  const onSubmit: SubmitHandler<ProjectFormData> = async data => {
     const newProject = {
       id: parseInt(data.projectId, 10),
       name: data.name,
@@ -57,12 +63,17 @@ export default function CreateProjectPage() {
       pm: data.pm,
       isFavorite: false,
     };
-    createProject(newProject);
+    await createProject(newProject);
     router.push('/projects');
   };
 
   return (
     <div className="px-8 pt-12 lg:w-2/3">
+      {error && (
+        <Typography variant="h6" color="error" align="center" className="mb-4">
+          {error}
+        </Typography>
+      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={{ md: 2, xs: 1 }} className="w-full">
@@ -216,8 +227,13 @@ export default function CreateProjectPage() {
             {/* Action Buttons */}
             <Grid size={{ xs: 12, md: 4 }}></Grid>
             <Grid size={{ xs: 12, md: 6 }} className="space-x-2">
-              <Button type="submit" variant="contained">
-                Create
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                startIcon={loading && <CircularProgress size={20} />}
+              >
+                {loading ? 'Creating...' : 'Create'}
               </Button>
               <Button
                 variant="outlined"

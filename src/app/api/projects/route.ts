@@ -3,8 +3,7 @@ import { projects, Project, simulateNetworkConditions } from './data';
 
 // GET /api/projects  -> Returns the list of all projects
 // POST /api/projects -> Creates a new project
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(req: NextRequest) {
+export async function GET() {
   // Simulate network delay & random error
   await simulateNetworkConditions();
 
@@ -12,8 +11,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  await simulateNetworkConditions();
-
   try {
     const body = await req.json();
     const newId = projects.length ? projects[projects.length - 1].id + 1 : 1;
