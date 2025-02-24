@@ -10,26 +10,58 @@ import { useProjectContext } from '../../../context/ProjectContext';
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { projects, toggleFavorite } = useProjectContext();
+  const { projects, toggleFavorite, loading, error } = useProjectContext();
 
   const [project, setProject] = useState(() => {
     const found = projects.find(p => p.id === Number(id));
     return found || null;
   });
 
-  // Keep local state in sync if global projects change
+  // Keep local state in sync if global projects change.
   useEffect(() => {
     const found = projects.find(p => p.id === Number(id));
     setProject(found || null);
   }, [id, projects]);
 
-  if (!project) {
-    return <div>Project not found</div>;
+  if (loading) {
+    return (
+      <Typography variant="h6" align="center" className="mt-8">
+        Loading project details...
+      </Typography>
+    );
   }
 
-  // Toggle favorite status
-  const handleToggleFavorite = () => {
-    toggleFavorite(project.id);
+  if (error) {
+    return (
+      <Typography variant="h6" color="error" align="center" className="mt-8">
+        {error}
+      </Typography>
+    );
+  }
+
+  if (!project) {
+    return (
+      <Typography variant="h6" align="center" className="mt-8">
+        Project not found
+      </Typography>
+    );
+  }
+
+  const handleToggleFavorite = async () => {
+    // Optimistically update local state
+    setProject(prev =>
+      prev ? { ...prev, isFavorite: !prev.isFavorite } : prev,
+    );
+
+    try {
+      await toggleFavorite(project.id);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      // On error, revert optimistic update
+      setProject(prev =>
+        prev ? { ...prev, isFavorite: !prev.isFavorite } : prev,
+      );
+    }
   };
 
   return (
@@ -70,7 +102,7 @@ export default function ProjectDetailPage() {
             </Typography>
           </Grid>
 
-          {/* Description Field (Multiline) */}
+          {/* Description Field */}
           <Grid size={{ xs: 12, md: 4 }}>
             <label htmlFor="description" className="mb-1 block">
               Description
@@ -119,7 +151,7 @@ export default function ProjectDetailPage() {
           </Grid>
 
           {/* Action Buttons */}
-          <Grid size={{ xs: 12, md: 4 }}></Grid>
+          <Grid size={{ xs: 12, md: 4 }} />
           <Grid size={{ xs: 12, md: 6 }} className="space-x-2">
             <Button variant="outlined" onClick={() => router.push('/projects')}>
               Back
