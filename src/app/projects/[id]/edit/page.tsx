@@ -3,7 +3,13 @@ import React, { useEffect } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useParams, useRouter } from 'next/navigation';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  CircularProgress,
+} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useProjectContext } from '../../../../context/ProjectContext';
 import * as yup from 'yup';
@@ -27,7 +33,7 @@ const schema = yup.object().shape({
 export default function EditProjectPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { projects, updateProject } = useProjectContext();
+  const { projects, updateProject, loading, error } = useProjectContext();
 
   const {
     control,
@@ -56,8 +62,8 @@ export default function EditProjectPage() {
     }
   }, [id, projects, setValue]);
 
-  const onSubmit: SubmitHandler<ProjectFormData> = data => {
-    updateProject({
+  const onSubmit: SubmitHandler<ProjectFormData> = async data => {
+    await updateProject({
       id: Number(id),
       ...data,
       isFavorite: projects.find(p => p.id === Number(id))?.isFavorite || false,
@@ -67,6 +73,12 @@ export default function EditProjectPage() {
 
   return (
     <div className="px-8 pt-12 lg:w-2/3">
+      {/* Display error message if exists */}
+      {error && (
+        <Typography variant="h6" color="error" align="center" className="mb-4">
+          {error}
+        </Typography>
+      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={{ md: 2, xs: 1 }} className="w-full">
@@ -206,10 +218,16 @@ export default function EditProjectPage() {
             </Grid>
 
             {/* Action Buttons */}
-            <Grid size={{ xs: 12, md: 4 }}></Grid>
+            <Grid size={{ xs: 12, md: 4 }} />
             <Grid size={{ xs: 12, md: 6 }} className="space-x-2">
-              <Button type="submit" variant="contained">
-                Update
+              <Button type="submit" variant="contained" disabled={loading}>
+                {loading ? (
+                  <>
+                    <CircularProgress size={20} /> Updating...
+                  </>
+                ) : (
+                  'Update'
+                )}
               </Button>
               <Button
                 variant="outlined"
