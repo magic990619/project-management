@@ -1,5 +1,11 @@
 'use client';
-import React, { createContext, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 
 // Type of a project
 export interface Project {
@@ -13,15 +19,19 @@ export interface Project {
 }
 
 // Context type
-interface ProjectContextType {
+interface ProjectContextProps {
   projects: Project[];
-  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
-  toggleFavorite: (id: number) => void;
-  updateProject: (updated: Project) => void;
-  createProject: (newProject: Project) => void;
+  loading: boolean;
+  error: string | null;
+  fetchProjects: () => void;
+  createProject: (project: Project) => Promise<void>;
+  updateProject: (project: Project) => Promise<void>;
+  toggleFavorite: (id: number) => Promise<void>;
 }
 
-const ProjectContext = createContext<ProjectContextType | null>(null);
+const ProjectContext = createContext<ProjectContextProps | undefined>(
+  undefined,
+);
 
 // Custom hook
 export function useProjectContext() {
@@ -32,98 +42,147 @@ export function useProjectContext() {
   return ctx;
 }
 
-export const ProjectProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  // Initial mock data
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: 1,
-      name: 'Project Alpha',
-      description: 'Lorem ipsum dolor sit amet.',
-      startDate: '2023-01-01',
-      endDate: '2023-06-01',
-      pm: 'John Doe',
-      isFavorite: true,
-    },
-    {
-      id: 2,
-      name: 'Project Beta',
-      description: 'Consectetur adipiscing elit.',
-      startDate: '2023-02-10',
-      endDate: '2023-07-20',
-      pm: 'Jane Smith',
-      isFavorite: false,
-    },
-    {
-      id: 3,
-      name: 'Project 3',
-      description: 'Consectetur adipiscing elit.',
-      startDate: '2023-02-10',
-      endDate: '2023-07-20',
-      pm: 'Jane Smith',
-      isFavorite: false,
-    },
-    {
-      id: 4,
-      name: 'Project 4',
-      description: 'Consectetur adipiscing elit.',
-      startDate: '2023-02-10',
-      endDate: '2023-07-20',
-      pm: 'Jane Smith',
-      isFavorite: false,
-    },
-    {
-      id: 5,
-      name: 'Project 5',
-      description: 'Consectetur adipiscing elit.',
-      startDate: '2023-02-10',
-      endDate: '2023-07-20',
-      pm: 'Jane Smith',
-      isFavorite: false,
-    },
-    {
-      id: 6,
-      name: 'Project 6',
-      description: 'Consectetur adipiscing elit.',
-      startDate: '2023-02-10',
-      endDate: '2023-07-20',
-      pm: 'Jane Smith',
-      isFavorite: false,
-    },
-  ]);
+// Helper function to safely parse JSON responses.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function parseJSON(response: Response): Promise<any> {
+  const contentType = response.headers.get('content-type');
+  const text = await response.text();
+  if (contentType && contentType.indexOf('application/json') !== -1 && text) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
 
-  // Toggle favorite
-  const toggleFavorite = (id: number) => {
-    setProjects(prev =>
-      prev.map(proj =>
-        proj.id === id ? { ...proj, isFavorite: !proj.isFavorite } : proj,
-      ),
-    );
+export const ProjectProvider = ({ children }: { children: ReactNode }) => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // For local development, you might use "http://localhost:4000/api/projects".
+  const API_URL = '/api/projects';
+
+  const fetchProjects = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(API_URL);
+      const data = await parseJSON(res);
+
+      if (!res.ok) {
+        // If server responded with error, data should include an error message.
+        setError(data.error || 'Failed to fetch projects.');
+        return;
+      }
+      // Assuming that the data returned is an object containing a projects array.
+      setProjects(data.projects || []);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch projects.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Update a project
-  const updateProject = (updated: Project) => {
-    setProjects(prev =>
-      prev.map(proj => (proj.id === updated.id ? updated : proj)),
-    );
+  const createProject = async (project: Project) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+      });
+      const data = await parseJSON(res);
+      if (!res.ok) {
+        setError(data.error || 'Failed to create project.');
+        return;
+      }
+      projects.push(project);
+      setProjects(projects);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to create project.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Create a new project
-  const createProject = (newProject: Project) => {
-    setProjects(prev => [...prev, newProject]);
+  const updateProject = async (project: Project) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/${project.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+      });
+      const data = await parseJSON(res);
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update project.');
+      }
+      setProjects(prevProjects =>
+        prevProjects.map(p => (p.id === project.id ? data : p)),
+      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to update project.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const toggleFavorite = async (id: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: 'PATCH',
+      });
+      const data = await parseJSON(res);
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to toggle favorite.');
+      }
+      setProjects(prevProjects =>
+        prevProjects.map(p => (p.id === id ? data : p)),
+      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to toggle favorite.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   return (
     <ProjectContext.Provider
       value={{
         projects,
-        setProjects,
-        toggleFavorite,
-        updateProject,
+        loading,
+        error,
+        fetchProjects,
         createProject,
+        updateProject,
+        toggleFavorite,
       }}
     >
       {children}
